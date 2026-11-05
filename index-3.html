@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#08090e">
+<title>NEXA Prank Generator</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090b12;color:#eee;font-family:Arial,sans-serif}
+.wrap{max-width:480px;margin:auto;padding:22px}
+h1{color:#ff3434;text-align:center;letter-spacing:3px}
+.card{background:#141722;border:1px solid #303444;border-radius:15px;padding:18px;margin:15px 0}
+button{width:100%;padding:15px;border:0;border-radius:9px;background:#c51e32;color:white;font-weight:bold;font-size:15px;margin-top:12px}
+input{width:100%;padding:13px;background:#080b12;border:1px solid #444;color:white;border-radius:8px}
+.preview{width:100%;border-radius:10px;background:#050505}
+.small{font-size:12px;color:#aaa;line-height:1.8}
+#prank{display:none;position:fixed;inset:0;background:radial-gradient(#310909,#050505 70%);z-index:10;padding:25px;overflow:auto;text-align:center}
+#prank h1{margin-top:12vh}
+#logs{height:180px;overflow:hidden;text-align:left;background:#090909;border:1px solid #6b2020;padding:12px;color:#ff7777;font:12px monospace}
+#meter{height:8px;background:#321010;margin:20px 0}
+#bar{height:100%;width:0;background:#f22;transition:width .3s}
+#pinbox{background:#111;padding:20px;border:1px solid #a22;border-radius:12px}
+#pinbox input{text-align:center;letter-spacing:8px;font-size:23px;width:180px}
+#end{display:none}
+#exit{position:fixed;z-index:20;top:8px;right:8px;width:auto;padding:9px;background:#333;font-size:12px}
+</style>
+</head>
+<body>
+
+<div id="generator" class="wrap">
+<h1>NEXA PRANK</h1>
+<p style="text-align:center">Dentistry Image & Link Generator</p>
+
+<div class="card">
+<h3>1. صورة طب الأسنان</h3>
+<canvas id="canvas" width="900" height="650" class="preview"></canvas>
+<p class="small">صورة أشعة أسنان بتأثير Pixelation، مع عنوان Dentistry.</p>
+</div>
+
+<div class="card">
+<h3>2. رابط المقلب</h3>
+<label class="small">رابط الموقع بعد استضافته:</label>
+<input id="base" placeholder="https://your-site.com">
+<button onclick="generate()">توليد الصورة والرابط</button>
+<input id="result" readonly placeholder="الرابط سيظهر هنا" style="margin-top:12px">
+<button onclick="copyLink()">نسخ الرابط</button>
+<button onclick="downloadImage()">تحميل الصورة</button>
+<button onclick="shareAll()">مشاركة الصورة والرابط</button>
+<p class="small">الرابط يُضاف في رسالة واتساب بجوار الصورة؛ الصورة نفسها لا تنفذ روابط عند فتحها.</p>
+</div>
+</div>
+
+<div id="prank">
+<button id="exit" onclick="finish()">خروج</button>
+<div id="scan">
+<h1>NEXA</h1>
+<h2 style="color:#f33">SECURITY ALERT</h2>
+<p id="status">Initializing visual security simulation...</p>
+<div id="logs"></div>
+<div id="meter"><div id="bar"></div></div>
+<h2 id="percent">0%</h2>
+<p class="small">CINEMATIC SIMULATION • NO DATA UPLOAD</p>
+</div>
+<div id="lock" style="display:none">
+<h1>NEXA</h1>
+<h2 style="color:#f33">SYSTEM LOCK SIMULATION</h2>
+<div style="font-size:70px">🔒</div>
+<p>أدخل الرقم السري لإنهاء المقلب</p>
+<div id="pinbox">
+<input id="pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+<button onclick="unlock()">UNLOCK</button>
+<p id="error" style="color:red"></p>
+</div>
+</div>
+<div id="end">
+<h1 style="font-size:40px">😂 GOT YOU!</h1>
+<h2>يا نجم ده مقلب!</h2>
+<p>مفيش اختراق ولا بيانات اتبعتت.</p>
+<button onclick="finish()">إنهاء</button>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let link="",soundCtx=null,scanTimer=null;
+
+function drawImage(){
+ const c=$("canvas"),x=c.getContext("2d");
+ x.fillStyle="#080b13";x.fillRect(0,0,900,650);
+ x.fillStyle="#dbe4f0";x.font="bold 65px Arial";
+ x.fillText("Dentistry 🦷",45,90);
+ x.fillStyle="#111827";x.fillRect(35,120,830,490);
+ // Stylized dental panoramic image
+ x.save();
+ x.beginPath();x.ellipse(450,360,350,205,0,0,Math.PI*2);x.clip();
+ x.fillStyle="#303b4b";x.fillRect(80,140,740,450);
+ for(let i=0;i<14;i++){
+  let xx=130+i*50;
+  x.fillStyle="#c8d0dc";
+  x.beginPath();
+  x.ellipse(xx,290+Math.sin(i/2)*12,18,85,0,0,Math.PI*2);x.fill();
+  x.fillStyle="#8896a8";
+  x.beginPath();x.ellipse(xx,420,17,75,0,0,Math.PI*2);x.fill();
+ }
+ x.restore();
+ // Mosaic effect
+ const small=document.createElement("canvas");
+ small.width=45;small.height=33;
+ small.getContext("2d").drawImage(c,35,120,830,490,0,0,45,33);
+ x.imageSmoothingEnabled=false;
+ x.drawImage(small,35,120,830,490);
+ x.fillStyle="#fff";x.font="23px Arial";
+ x.fillText("DENTAL STUDY IMAGE",45,580);
+}
+drawImage();
+
+function generate(){
+ let base=$("base").value.trim().replace(/\/+$/,"");
+ if(!/^https?:\/\//i.test(base)){
+  alert("اكتب رابط الموقع بعد استضافته أولاً");
+  return;
+ }
+ link=base+(base.includes("?")?"&":"?")+"prank=1";
+ $("result").value=link;
+}
+
+function copyLink(){
+ if(!link)return alert("ولّد الرابط أولاً");
+ navigator.clipboard.writeText(link).then(()=>alert("تم نسخ الرابط"));
+}
+function downloadImage(){
+ $("canvas").toBlob(blob=>{
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="Dentistry-Study.png";a.click();
+  URL.revokeObjectURL(a.href);
+ },"image/png");
+}
+async function shareAll(){
+ if(!link)return alert("ولّد الرابط أولاً");
+ $("canvas").toBlob(async blob=>{
+  let file=new File([blob],"Dentistry.png",{type:"image/png"});
+  try{
+   if(navigator.canShare && navigator.canShare({files:[file]})){
+    await navigator.share({files:[file],title:"Dentistry",text:"رابط تجربة مقلب ترفيهية:\n"+link});
+   }else{
+    await navigator.share({title:"Dentistry",text:link});
+   }
+  }catch(e){}
+ },"image/png");
+}
+
+// Automatic prank route
+if(new URLSearchParams(location.search).get("prank")==="1"){
+ $("generator").style.display="none";
+ $("prank").style.display="block";
+ startSimulation();
+}
+
+function startSimulation(){
+ const messages=[
+ "Initializing visual security scan...",
+ "Checking system interface...",
+ "Simulating encrypted transfer...",
+ "Preparing security demonstration...",
+ "Visual simulation almost complete..."
+ ];
+ const logs=[
+ "[NEXA] Simulation initialized",
+ "[SCAN] Interface inspection",
+ "[NETWORK] Simulated transfer",
+ "[SECURITY] No device access",
+ "[SYSTEM] Preparing lock animation"
+ ];
+ let i=0,p=0;
+ scanTimer=setInterval(()=>{
+  p=Math.min(100,p+2);
+  $("bar").style.width=p+"%";
+  $("percent").textContent=p+"%";
+  $("status").textContent=messages[Math.min(4,Math.floor(p/22))];
+  if(i<logs.length){
+   $("logs").innerHTML+= "<p>"+logs[i++]+"</p>";
+  }
+  if(p>=100){
+   clearInterval(scanTimer);
+   setTimeout(()=>{
+    $("scan").style.display="none";
+    $("lock").style.display="block";
+   },700);
+  }
+ },250);
+}
+
+function unlock(){
+ if($("pin").value==="2026"){
+  $("lock").style.display="none";
+  $("end").style.display="block";
+ }else{
+  $("error").textContent="Incorrect PIN";
+ }
+}
+function finish(){
+ if(scanTimer)clearInterval(scanTimer);
+ $("prank").style.display="none";
+ $("generator").style.display="block";
+}
+</script>
+</body>
+</html>
